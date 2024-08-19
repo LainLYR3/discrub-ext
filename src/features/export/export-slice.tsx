@@ -870,33 +870,31 @@ const _exportJson =
     );
   };
 
-const _exportCsv = async ({
-  exportUtils,
-  messages,
-  entityMainDirectory,
-  entityName,
-  currentPage,
-}: ExportHtmlProps) => {
-  const csvKeys: string[] = [];
-  const csvData: Object[] = messages.map((m) => {
-    const flattenedMessage: Object = flatten(m);
-    Object.keys(flattenedMessage).forEach((mKey) => {
-      if (!csvKeys.some((csvKey) => csvKey === mKey)) {
-        csvKeys.push(mKey);
-      }
+  const _exportCsv = async ({
+    exportUtils,
+    messages,
+    entityMainDirectory,
+    entityName,
+    currentPage,
+  }: ExportHtmlProps) => {
+    // Extract only the required fields: 'author.global_name' and 'content'
+    const csvData = messages.map((m) => {
+      return {
+        "author.global_name": m.author?.global_name || "",
+        content: m.content || "",
+      };
     });
-    return flattenedMessage;
-  });
-
-  await exportUtils.addToZip(
-    Papa.unparse(csvData, {
-      columns: ["id", ...csvKeys.filter((k) => k !== "id").sort()],
-    }),
-    `${entityMainDirectory}/${getSafeExportName(
-      entityName
-    )}_page_${currentPage}.csv`
-  );
-};
+  
+    await exportUtils.addToZip(
+      Papa.unparse(csvData, {
+        columns: ["author.global_name", "content"],
+      }),
+      `${entityMainDirectory}/${getSafeExportName(
+        entityName
+      )}_page_${currentPage}.csv`
+    );
+  };
+  
 
 const _compressMessages =
   ({
